@@ -1,4 +1,4 @@
-#include <FAB_LED.h>
+#include "FAB_LED/FAB_LED.h"
 
 // Note that the platformio.ini file re-defines the serial rx buffer size.
 
@@ -15,9 +15,8 @@ void setup() {
   strip.clear(NUM_LEDS);
 }
 
-// !! IMPORTANT !!
-// Make sure this is fast enough that it can
-// clear the 64 byte buffer faster than it is filled!
+// Don't spend too long in this function, we need to read out 
+// the serial buffer fairly quickly as to not loose data.
 void on_serial() 
 {
     
@@ -30,6 +29,9 @@ void on_serial()
   // the first, second, or third byte
   switch (read % 3)
   {
+  /*
+  Idk why it's weird like this RBG, but it's easier to change it here. 
+  */
   case 0: // first
     pixels[index].r = read_byte;
     break;
@@ -45,6 +47,7 @@ void on_serial()
   if (read < BUF_SIZE-1) {
     read++;
   } else {
+    // Whole frame as been read, send to the leds
     strip.sendPixels(NUM_LEDS, pixels);
     read=0;
   }
@@ -52,9 +55,8 @@ void on_serial()
 
 void loop() {
   
-  Serial.println(Serial.available());
   if (Serial.available() > 0) {
-    // on_serial();
+    on_serial();
   }
   
 }
